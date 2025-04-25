@@ -1,0 +1,8 @@
+{
+  "name": "whatsapp-food-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Food Ordering System",
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+}
