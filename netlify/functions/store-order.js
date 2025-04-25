@@ -1,4 +1,4 @@
-// netlify/functions/processOrder.js (replace with this content)
+// functions/store-order.js
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 

@@ -1,32 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Ordering</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daal Mail - Food Ordering</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="container">
-    <h1>🍔 Food Menu</h1>
-    <form id="orderForm">
-      <div class="menu-item">
-        <input type="checkbox" id="item1" name="item" value="Burger">
-        <label for="item1">Burger - ₹120</label>
-      </div>
-      <div class="menu-item">
-        <input type="checkbox" id="item2" name="item" value="Pizza">
-        <label for="item2">Pizza - ₹200</label>
-      </div>
-      <div class="menu-item">
-        <input type="checkbox" id="item3" name="item" value="Pasta">
-        <label for="item3">Pasta - ₹150</label>
-      </div>
-      <input type="hidden" id="waNumber" name="waNumber">
-      <button type="submit">Place Order via WhatsApp</button>
-    </form>
-    <div id="confirmation" class="hidden"></div>
-  </div>
-  <script src="script.js"></script>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-green-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Daal Mail</h1>
+            <div>
+                <span class="hidden md:inline">Traditional Indian Food</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <section id="menu-section" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Our Menu</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="menu-container">
+                <!-- Menu items will be inserted here -->
+            </div>
+        </section>
+
+        <section id="cart-section" class="bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Your Order</h2>
+            <div id="cart-items" class="mb-4">
+                <p class="text-gray-500 italic">No items in your cart</p>
+            </div>
+            <div class="flex justify-between items-center border-t pt-4">
+                <div>
+                    <span class="font-semibold">Total:</span>
+                    <span id="cart-total" class="text-green-600 font-bold">₹0</span>
+                </div>
+                <button id="order-btn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
+                    Submit Order
+                </button>
+            </div>
+        </section>
+
+        <!-- Order Success Modal -->
+        <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h3 class="text-xl font-bold text-green-600 mb-4">Order Placed Successfully!</h3>
+                <p id="order-confirmation-message" class="mb-4"></p>
+                <p class="text-gray-600 mb-4">Check your WhatsApp for order confirmation.</p>
+                <button id="close-modal" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition w-full">
+                    Close
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h3 class="text-xl font-bold text-red-600 mb-4">Oops! Something went wrong</h3>
+                <p id="error-message" class="mb-4">Unable to place your order. Please try again.</p>
+                <button id="close-error-modal" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition w-full">
+                    Close
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,11 @@
-[build]
-  command = "echo 'No build needed'"
-  publish = "public"
+[
+build
+]
   functions = "netlify/functions"
+
+[[
+redirects
+]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
