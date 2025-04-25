@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Ordering</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🍔 Food Menu</h1>
+    <form id="orderForm">
+      <div class="menu-item">
+        <input type="checkbox" id="item1" name="item" value="Burger">
+        <label for="item1">Burger - ₹120</label>
+      </div>
+      <div class="menu-item">
+        <input type="checkbox" id="item2" name="item" value="Pizza">
+        <label for="item2">Pizza - ₹200</label>
+      </div>
+      <div class="menu-item">
+        <input type="checkbox" id="item3" name="item" value="Pasta">
+        <label for="item3">Pasta - ₹150</label>
+      </div>
+      <input type="hidden" id="waNumber" name="waNumber">
+      <button type="submit">Place Order via WhatsApp</button>
+    </form>
+    <div id="confirmation" class="hidden"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
