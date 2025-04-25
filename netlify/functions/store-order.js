@@ -1,76 +1,63 @@
-// functions/store-order.js
-const { MongoClient } = require('mongodb');
-require('dotenv').config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = 'daalMail';
-const COLLECTION_NAME = 'orders';
-
-// Connect to MongoDB
-let cachedDb = null;
-const connectToDatabase = async () => {
-  if (cachedDb) return cachedDb;
-  
-  const client = await MongoClient.connect(MONGODB_URI);
-  cachedDb = client.db(DB_NAME);
-  return cachedDb;
-};
+const { MongoClient } = require("mongodb");
+const MONGO_URI = process.env.MONGODB_URI;
+const DB_NAME = "daalMail";
+const COLLECTION_NAME = "orders";
 
 exports.handler = async (event, context) => {
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
+  console.log("➡️ Function triggered");
+
+  if (event.httpMethod !== "POST") {
+    console.warn("❌ Invalid method:", event.httpMethod);
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' })
+      body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
 
   try {
-    // Parse the incoming request body
-    const data = JSON.parse(event.body);
-    const { waNumber, orderItems, total } = data;
-    
+    console.log("🔐 MONGO_URI available?", !!MONGO_URI);
+
+    const body = JSON.parse(event.body);
+    console.log("📦 Order data received:", body);
+
+    const { waNumber, orderItems, total } = body;
     if (!waNumber || !orderItems || !total) {
+      console.warn("⚠️ Missing fields");
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields' })
+        body: JSON.stringify({ error: "Missing required fields" }),
       };
     }
 
-    // Format the phone number to include country code if not present
-    const formattedPhone = waNumber.startsWith('+') 
-      ? waNumber 
-      : `+${waNumber}`;
-      
-    // Create an order object
-    const order = {
-      waNumber: formattedPhone,
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    console.log("✅ MongoDB connected");
+
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    const newOrder = {
+      waNumber,
       orderItems,
       total,
-      status: 'new',
-      orderTime: new Date(),
-      orderNumber: `DM${Date.now().toString().slice(-6)}` // Simple order ID generation
+      timestamp: new Date(),
     };
 
-    // Connect to the database
-    const db = await connectToDatabase();
-    
-    // Insert the order
-    await db.collection(COLLECTION_NAME).insertOne(order);
+    const result = await collection.insertOne(newOrder);
+    console.log("✅ Order inserted with ID:", result.insertedId);
+
+    await client.close();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ 
-        success: true, 
-        orderId: order.orderNumber,
-        message: 'Order placed successfully' 
-      })
+      body: JSON.stringify({ message: "Order stored successfully!" }),
     };
-  } catch (error) {
-    console.error('Error storing order:', error);
+  } catch (err) {
+    console.error("❌ Error storing order:", err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to store order' })
+      body: JSON.stringify({ error: "Failed to store order" }),
     };
   }
 };
