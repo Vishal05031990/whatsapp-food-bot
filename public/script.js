@@ -1,11 +1,69 @@
 // Menu data
 const menu = [
-    { id: 1, name: 'Dal', price: 50, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
-    { id: 2, name: 'Chole', price: 60, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
-    { id: 3, name: 'Rajma', price: 55, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
-    { id: 4, name: 'Kadi', price: 45, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
-    { id: 5, name: 'Rice', price: 30, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
-    { id: 6, name: 'Bread', price: 20, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg' },
+    { 
+        id: 1, 
+        name: 'Dal', 
+        price: 50, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'A classic lentil dish, rich and flavorful.',
+        options: [
+            { name: 'Full', priceMultiplier: 1 },
+            { name: 'Half', priceMultiplier: 0.5 }
+        ]
+    },
+    { 
+        id: 2, 
+        name: 'Chole', 
+        price: 60, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'Spicy and tangy chickpea curry.',
+        options: [
+            { name: 'Full', priceMultiplier: 1 },
+            { name: 'Half', priceMultiplier: 0.5 }
+        ]
+    },
+    { 
+        id: 3, 
+        name: 'Rajma', 
+        price: 55, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'Red kidney bean curry, a North Indian favorite.',
+        options: [
+            { name: 'Full', priceMultiplier: 1 },
+            { name: 'Half', priceMultiplier: 0.5 }
+        ]
+    },
+    { 
+        id: 4, 
+        name: 'Kadi', 
+        price: 45, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'Yogurt-based curry with gram flour dumplings.',
+        options: [
+            { name: 'Full', priceMultiplier: 1 },
+            { name: 'Half', priceMultiplier: 0.5 }
+        ]
+    },
+    { 
+        id: 5, 
+        name: 'Rice', 
+        price: 30, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'Plain steamed rice, perfect accompaniment to any dish.',
+        options: [
+            { name: 'Regular', priceMultiplier: 1 }
+        ]
+    },
+    { 
+        id: 6, 
+        name: 'Bread', 
+        price: 20, 
+        imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+        description: 'Assorted Indian breads (Roti, Naan).',
+        options: [
+            { name: '1 Qty', priceMultiplier: 1 }
+        ]
+    },
 ];
 
 // State
@@ -32,19 +90,45 @@ function renderMenu() {
 
     menu.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'item-card bg-white rounded-lg shadow-md overflow-hidden';
+        card.className = 'item-card bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]';
         card.dataset.id = item.id;
 
+        let optionsHtml = '';
+        if (item.options && item.options.length > 1) {
+            optionsHtml = `<div class="options flex justify-center gap-4 mt-4">`;
+            item.options.forEach(option => {
+                optionsHtml += `
+                    <input type="radio" id="${item.id}-${option.name}" name="option-${item.id}" value="${option.name}" data-price-multiplier="${option.priceMultiplier}" class="hidden peer">
+                    <label for="${item.id}-${option.name}" class="inline-flex items-center justify-center px-4 py-2 rounded-full border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-green-600 cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-500/50 transition-colors duration-300 font-medium text-sm w-full text-center">
+                        ${option.name}
+                    </label>
+                `;
+            });
+            optionsHtml += `</div>`;
+        } else if (item.options && item.options.length === 1) {
+            optionsHtml = `<div class="options flex justify-center gap-4 mt-4">
+                            <span class="text-gray-700 font-medium text-sm">
+                                ${item.options[0].name}
+                            </span>
+                           </div>`;
+        }
+
+
         card.innerHTML = `
-            <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-48 object-cover">
-            <div class="p-4">
-                <h3 class="font-semibold text-lg">${item.name}</h3>
+            <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-48 object-cover rounded-t-lg">
+            <div class="p-6">
+                <h3 class="font-semibold text-xl text-gray-800 mb-2">${item.name}</h3>
+                <p class="text-gray-600 text-sm mb-4 description hidden">${item.description}</p>
+                 <button class="description-btn text-blue-500 hover:text-blue-700 text-sm mb-4 transition-colors duration-200">
+                    Show Description
+                </button>
                 <div class="flex justify-between items-center mt-2">
-                    <span class="text-green-600 font-bold">₹${item.price}</span>
-                    <button class="add-to-cart bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition">
+                    <span class="text-green-600 font-bold text-lg">₹${item.price}</span>
+                    <button class="add-to-cart bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors duration-300 font-semibold">
                         Add
                     </button>
                 </div>
+                ${optionsHtml}
             </div>
         `;
 
@@ -64,14 +148,17 @@ function updateCart() {
     }
 
     let total = 0;
-    let cartHTML = '<ul class="divide-y">';
+    let cartHTML = '<ul class="divide-y divide-gray-200">';
     
     cart.forEach(item => {
         total += item.price;
         cartHTML += `
-            <li class="py-2 flex justify-between items-center">
-                <span>${item.name} - ₹${item.price}</span>
-                <button class="remove-item text-red-500 hover:text-red-700" data-id="${item.id}">
+            <li class="py-3 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="font-medium text-gray-800">${item.name} ${item.portion ? `(${item.portion})` : ''} x ${item.quantity}</span>
+                    <span class="text-green-600 font-semibold">₹${item.price.toFixed(2)}</span>
+                </div>
+                <button class="remove-item text-red-500 hover:text-red-700 transition-colors duration-200 font-medium" data-id="${item.id}">
                     Remove
                 </button>
             </li>
@@ -80,9 +167,9 @@ function updateCart() {
     
     cartHTML += '</ul>';
     cartItemsElement.innerHTML = cartHTML;
-    cartTotalElement.textContent = `₹${total}`;
-
-    // Add event listeners to remove buttons
+    cartTotalElement.textContent = `₹${total.toFixed(2)}`;
+    
+     // Add event listeners to remove buttons
     document.querySelectorAll('.remove-item').forEach(button => {
         button.addEventListener('click', (e) => {
             const id = parseInt(e.target.dataset.id);
@@ -95,7 +182,29 @@ function updateCart() {
 function addToCart(id) {
     const item = menu.find(item => item.id === id);
     if (item) {
-        cart.push({...item});
+        let selectedOption = item.options ? document.querySelector(`input[name="option-${id}"]:checked`) : null;
+        let priceMultiplier = selectedOption ? parseFloat(selectedOption.dataset.priceMultiplier) : 1;
+        let portionName = selectedOption ? selectedOption.value : item.options? item.options[0].name : '';
+       
+        let quantity = 1;
+        if(item.name === 'Rice') {
+            quantity = 1;
+        }
+        
+        const existingItem = cart.find(cartItem => cartItem.id === id && cartItem.portion === portionName);
+        
+        if (existingItem) {
+             existingItem.quantity += quantity;
+             existingItem.price = item.price * existingItem.quantity * priceMultiplier;
+        } else {
+            cart.push({ 
+                ...item, 
+                price: item.price * quantity * priceMultiplier,
+                portion: portionName,
+                quantity: quantity
+            });
+        }
+        
         updateCart();
         
         // Highlight the selected card
@@ -130,6 +239,12 @@ async function submitOrder() {
 
     try {
         const total = cart.reduce((sum, item) => sum + item.price, 0);
+         const orderItems = cart.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            portion: item.portion,
+            price: item.price / item.quantity, // Price per unit
+        }));
         
         const response = await fetch('/.netlify/functions/processOrder', {
             method: 'POST',
@@ -138,7 +253,7 @@ async function submitOrder() {
             },
             body: JSON.stringify({
                 waNumber,
-                orderItems: cart,
+                orderItems,
                 total
             })
         });
@@ -177,6 +292,18 @@ function attachEventListeners() {
             const card = e.target.closest('.item-card');
             const id = parseInt(card.dataset.id);
             addToCart(id);
+        }
+    });
+
+     // Description toggle buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('description-btn')) {
+            const card = e.target.closest('.item-card');
+            const description = card.querySelector('.description');
+            description.classList.toggle('hidden');
+            e.target.textContent = description.classList.contains('hidden')
+                ? 'Show Description'
+                : 'Hide Description';
         }
     });
 
