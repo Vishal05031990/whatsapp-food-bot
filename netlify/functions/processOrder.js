@@ -67,10 +67,10 @@ exports.handler = async (event, context) => {
       })
     };
   } catch (error) {
-    console.error('Error storing order:', error);
+    console.error('Error processing order:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to store order' })
+      body: JSON.stringify({ error: 'Internal server error' })
     };
   }
 };
