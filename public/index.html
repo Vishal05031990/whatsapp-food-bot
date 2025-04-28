@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,14 @@
     <title>Daal Mail - Food Ordering</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <header class="bg-green-600 text-white p-4 shadow-md">
@@ -20,34 +29,34 @@
     <main class="container mx-auto p-4">
         <section id="menu-section" class="mb-8">
             <h2 class="text-xl font-semibold mb-4">Our Menu</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="menu-container">
-                <!-- Menu items will be inserted here -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="menu-container">
+                <!-- Menu items will be dynamically inserted here -->
             </div>
         </section>
 
-        <section id="cart-section" class="bg-white p-4 rounded-lg shadow-md">
+        <section id="cart-section" class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-semibold mb-4">Your Order</h2>
             <div id="cart-items" class="mb-4">
                 <p class="text-gray-500 italic">No items in your cart</p>
             </div>
             <div class="flex justify-between items-center border-t pt-4">
                 <div>
-                    <span class="font-semibold">Total:</span>
-                    <span id="cart-total" class="text-green-600 font-bold">₹0</span>
+                    <span class="font-semibold text-lg">Total:</span>
+                    <span id="cart-total" class="text-green-600 font-bold text-xl">₹0</span>
                 </div>
-                <button id="order-btn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
+                <button id="order-btn" class="bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors duration-300 font-semibold">
                     Submit Order
                 </button>
             </div>
         </section>
 
-        <!-- Order Success Modal -->
+        <!-- Success Modal -->
         <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h3 class="text-xl font-bold text-green-600 mb-4">Order Placed Successfully!</h3>
-                <p id="order-confirmation-message" class="mb-4"></p>
-                <p class="text-gray-600 mb-4">Check your WhatsApp for order confirmation.</p>
-                <button id="close-modal" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition w-full">
+            <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+                <h3 class="text-2xl font-bold text-green-600 mb-4">Order Placed Successfully!</h3>
+                <p id="order-confirmation-message" class="text-lg text-gray-700 mb-6"></p>
+                <p class="text-gray-600 mb-8">Check your WhatsApp for order confirmation.</p>
+                <button id="close-modal" class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors duration-300 font-semibold w-full">
                     Close
                 </button>
             </div>
@@ -55,10 +64,10 @@
 
         <!-- Error Modal -->
         <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h3 class="text-xl font-bold text-red-600 mb-4">Oops! Something went wrong</h3>
-                <p id="error-message" class="mb-4">Unable to place your order. Please try again.</p>
-                <button id="close-error-modal" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition w-full">
+            <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+                <h3 class="text-2xl font-bold text-red-600 mb-4">Oops! Something went wrong</h3>
+                <p id="error-message" class="text-lg text-gray-700 mb-6">Unable to place your order. Please try again.</p>
+                <button id="close-error-modal" class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition-colors duration-300 font-semibold w-full">
                     Close
                 </button>
             </div>

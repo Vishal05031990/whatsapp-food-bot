@@ -99,7 +99,7 @@ function renderMenu() {
             item.options.forEach(option => {
                 optionsHtml += `
                     <input type="radio" id="${item.id}-${option.name}" name="option-${item.id}" value="${option.name}" data-price-multiplier="${option.priceMultiplier}" class="hidden peer">
-                    <label for="${item.id}-${option.name}" class="inline-flex items-center justify-center px-4 py-2 rounded-full border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-green-600 cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-500/50 transition-colors duration-300 font-medium text-sm w-full text-center">
+                    <label for="${item.id}-${option.name}" class="inline-flex items-center justify-center px-4 py-2 rounded-full border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-green-600 cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-500/50 transition-colors duration-300 font-medium text-sm w-full text-center peer-checked:bg-green-100 peer-checked:text-green-700">
                         ${option.name}
                     </label>
                 `;
@@ -115,7 +115,7 @@ function renderMenu() {
 
 
         card.innerHTML = `
-            <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-48 object-cover rounded-t-lg">
+            <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-t-lg">
             <div class="p-6">
                 <h3 class="font-semibold text-xl text-gray-800 mb-2">${item.name}</h3>
                 <p class="text-gray-600 text-sm mb-4 description hidden">${item.description}</p>
