@@ -1,12 +1,12 @@
 // netlify/functions/processOrder.js
 const { MongoClient } = require('mongodb');
-const axios = require('axios'); // Import axios
+const axios = require('axios');
 require('dotenv').config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'daalMail';
 const COLLECTION_NAME = 'orders';
-const NETLIFY_FUNCTION_URL = process.env.NETLIFY_FUNCTION_URL; // Add this
+const NETLIFY_FUNCTION_URL = process.env.NETLIFY_FUNCTION_URL;
 
 // Connect to MongoDB
 let cachedDb = null;
@@ -51,7 +51,7 @@ exports.handler = async (event, context) => {
       total,
       status: 'new',
       orderTime: new Date(),
-      orderNumber: `DM${Date.now().toString().slice(-6)}` // Simple order ID generation
+      orderNumber: `DM${Date.now().toString().slice(-6)}`
     };
 
     // Connect to the database
@@ -73,16 +73,21 @@ Status: ${order.status}
     // Call sendMessage Netlify Function
     try {
       const sendMessageResponse = await axios.post(
-        `${NETLIFY_FUNCTION_URL}/sendMessage`, // Use the environment variable
+        `${NETLIFY_FUNCTION_URL}/sendMessage`,
         {
           phone: formattedPhone,
           message: `Your order has been placed!\n${orderSummary}`
+        },
+        {
+          headers: {
+            Authorization: `Bearer EAAJOwzVjafUBO1YobOHuw4woZCd9EUCheXx65sWC4dOuIqa1OLOXU17gEyctZCDObLuGNF8wC11Iyl5phpOwN4Nh8WOLN3a4HZCBkUz46IY72gHWzZBziQBuag0ROksayA3NG0ZArq0DprCuHsgSgXtvmv5HWllH7oFY6xhCNj7c9TwuRoBBPR9XfsyMcfg24VgZDZD`,
+            'Content-Type': 'application/json'
+          }
         }
       );
-      console.log('sendMessage response:', sendMessageResponse.data); // Log
+      console.log('sendMessage response:', sendMessageResponse.data);
     } catch (sendMessageError) {
       console.error('Error calling sendMessage:', sendMessageError.response?.data || sendMessageError.message);
-      // Consider *not* failing the whole order if sending the message fails.  You might want to log this and continue.
     }
 
     return {
