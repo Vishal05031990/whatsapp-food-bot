@@ -73,7 +73,7 @@ Status: ${order.status}
     // Call sendMessage Netlify Function
     try {
       const sendMessageResponse = await axios.post(
-        `${NETLIFY_FUNCTION_URL}/sendMessage`,
+        `https://graph.facebook.com/v19.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, // Use the environment variable
         {
           phone: formattedPhone,
           message: `Your order has been placed!\n${orderSummary}`
