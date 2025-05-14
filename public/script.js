@@ -1,68 +1,46 @@
 // Menu data
 const menu = [
-    { 
-        id: 1, 
-        name: 'Dal', 
-        price: 50, 
+    {
+        id: 1,
+        name: 'Dal',
+        price: 50,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'A classic lentil dish, rich and flavorful.',
-        options: [
-            { name: 'Full', priceMultiplier: 1 },
-            { name: 'Half', priceMultiplier: 0.5 }
-        ]
+        description: 'A classic lentil dish, rich and flavorful.'
     },
-    { 
-        id: 2, 
-        name: 'Chole', 
-        price: 60, 
+    {
+        id: 2,
+        name: 'Chole',
+        price: 60,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'Spicy and tangy chickpea curry.',
-        options: [
-            { name: 'Full', priceMultiplier: 1 },
-            { name: 'Half', priceMultiplier: 0.5 }
-        ]
+        description: 'Spicy and tangy chickpea curry.'
     },
-    { 
-        id: 3, 
-        name: 'Rajma', 
-        price: 55, 
+    {
+        id: 3,
+        name: 'Rajma',
+        price: 55,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'Red kidney bean curry, a North Indian favorite.',
-        options: [
-            { name: 'Full', priceMultiplier: 1 },
-            { name: 'Half', priceMultiplier: 0.5 }
-        ]
+        description: 'Red kidney bean curry, a North Indian favorite.'
     },
-    { 
-        id: 4, 
-        name: 'Kadi', 
-        price: 45, 
+    {
+        id: 4,
+        name: 'Kadi',
+        price: 45,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'Yogurt-based curry with gram flour dumplings.',
-        options: [
-            { name: 'Full', priceMultiplier: 1 },
-            { name: 'Half', priceMultiplier: 0.5 }
-        ]
+        description: 'Yogurt-based curry with gram flour dumplings.'
     },
-    { 
-        id: 5, 
-        name: 'Rice', 
-        price: 30, 
+    {
+        id: 5,
+        name: 'Rice',
+        price: 30,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'Plain steamed rice, perfect accompaniment to any dish.',
-        options: [
-            { name: 'Regular', priceMultiplier: 1 }
-        ]
+        description: 'Plain steamed rice, perfect accompaniment to any dish.'
     },
-    { 
-        id: 6, 
-        name: 'Bread', 
-        price: 20, 
+    {
+        id: 6,
+        name: 'Bread',
+        price: 20,
         imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
-        description: 'Assorted Indian breads (Roti, Naan).',
-        options: [
-            { name: '1 Qty', priceMultiplier: 1 }
-        ]
+        description: 'Assorted Indian breads (Roti, Naan).'
     },
 ];
 
@@ -93,27 +71,6 @@ function renderMenu() {
         card.className = 'item-card bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]';
         card.dataset.id = item.id;
 
-        let optionsHtml = '';
-        if (item.options && item.options.length > 1) {
-            optionsHtml = `<div class="options flex justify-center gap-4 mt-4">`;
-            item.options.forEach(option => {
-                optionsHtml += `
-                    <input type="radio" id="${item.id}-${option.name}" name="option-${item.id}" value="${option.name}" data-price-multiplier="${option.priceMultiplier}" class="hidden peer">
-                    <label for="${item.id}-${option.name}" class="inline-flex items-center justify-center px-4 py-2 rounded-full border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-green-600 cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-500/50 transition-colors duration-300 font-medium text-sm w-full text-center peer-checked:bg-green-100 peer-checked:text-green-700">
-                        ${option.name}
-                    </label>
-                `;
-            });
-            optionsHtml += `</div>`;
-        } else if (item.options && item.options.length === 1) {
-            optionsHtml = `<div class="options flex justify-center gap-4 mt-4">
-                            <span class="text-gray-700 font-medium text-sm">
-                                ${item.options[0].name}
-                            </span>
-                           </div>`;
-        }
-
-
         card.innerHTML = `
             <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-t-lg">
             <div class="p-6">
@@ -128,7 +85,15 @@ function renderMenu() {
                         Add
                     </button>
                 </div>
-                ${optionsHtml}
+                <div class="quantity-adjust mt-4 flex justify-center items-center gap-4">
+                    <button class="quantity-minus text-gray-700 hover:bg-gray-200 p-2 rounded-full">
+                        -
+                    </button>
+                    <span class="quantity-text text-gray-700">1</span>
+                    <button class="quantity-plus text-gray-700 hover:bg-gray-200 p-2 rounded-full">
+                        +
+                    </button>
+                </div>
             </div>
         `;
 
@@ -155,7 +120,7 @@ function updateCart() {
         cartHTML += `
             <li class="py-3 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <span class="font-medium text-gray-800">${item.name} ${item.portion ? `(${item.portion})` : ''} x ${item.quantity}</span>
+                    <span class="font-medium text-gray-800">${item.name} x ${item.quantity}</span>
                     <span class="text-green-600 font-semibold">₹${item.price.toFixed(2)}</span>
                 </div>
                 <button class="remove-item text-red-500 hover:text-red-700 transition-colors duration-200 font-medium" data-id="${item.id}">
@@ -169,7 +134,7 @@ function updateCart() {
     cartItemsElement.innerHTML = cartHTML;
     cartTotalElement.textContent = `₹${total.toFixed(2)}`;
     
-     // Add event listeners to remove buttons
+    // Add event listeners to remove buttons
     document.querySelectorAll('.remove-item').forEach(button => {
         button.addEventListener('click', (e) => {
             const id = parseInt(e.target.dataset.id);
@@ -179,40 +144,23 @@ function updateCart() {
 }
 
 // Add item to cart
-function addToCart(id) {
+function addToCart(id, quantity) {
     const item = menu.find(item => item.id === id);
     if (item) {
-        let selectedOption = item.options ? document.querySelector(`input[name="option-${id}"]:checked`) : null;
-        let priceMultiplier = selectedOption ? parseFloat(selectedOption.dataset.priceMultiplier) : 1;
-        let portionName = selectedOption ? selectedOption.value : item.options? item.options[0].name : '';
-       
-        let quantity = 1;
-        if(item.name === 'Rice') {
-            quantity = 1;
-        }
-        
-        const existingItem = cart.find(cartItem => cartItem.id === id && cartItem.portion === portionName);
+        const existingItem = cart.find(cartItem => cartItem.id === id);
         
         if (existingItem) {
-             existingItem.quantity += quantity;
-             existingItem.price = item.price * existingItem.quantity * priceMultiplier;
+            existingItem.quantity += quantity;
+            existingItem.price = item.price * existingItem.quantity;
         } else {
-            cart.push({ 
-                ...item, 
-                price: item.price * quantity * priceMultiplier,
-                portion: portionName,
+            cart.push({
+                ...item,
+                price: item.price * quantity,
                 quantity: quantity
             });
         }
         
         updateCart();
-        
-        // Highlight the selected card
-        const card = document.querySelector(`.item-card[data-id="${id}"]`);
-        card.classList.add('selected');
-        setTimeout(() => {
-            card.classList.remove('selected');
-        }, 500);
     }
 }
 
@@ -239,10 +187,9 @@ async function submitOrder() {
 
     try {
         const total = cart.reduce((sum, item) => sum + item.price, 0);
-         const orderItems = cart.map(item => ({
+        const orderItems = cart.map(item => ({
             name: item.name,
             quantity: item.quantity,
-            portion: item.portion,
             price: item.price / item.quantity, // Price per unit
         }));
         
@@ -262,7 +209,7 @@ async function submitOrder() {
         
         if (response.ok) {
             // Show success modal
-            document.getElementById('order-confirmation-message').textContent = 
+            document.getElementById('order-confirmation-message').textContent =
                 `Your order #${result.orderId} has been placed successfully!`;
             document.getElementById('success-modal').classList.remove('hidden');
             
@@ -291,19 +238,25 @@ function attachEventListeners() {
         if (e.target.classList.contains('add-to-cart')) {
             const card = e.target.closest('.item-card');
             const id = parseInt(card.dataset.id);
-            addToCart(id);
+            const quantity = parseInt(card.querySelector('.quantity-text').textContent);
+            addToCart(id, quantity);
         }
     });
 
-     // Description toggle buttons
+    // Quantity adjustment buttons
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('description-btn')) {
+        if (e.target.classList.contains('quantity-plus') || e.target.classList.contains('quantity-minus')) {
             const card = e.target.closest('.item-card');
-            const description = card.querySelector('.description');
-            description.classList.toggle('hidden');
-            e.target.textContent = description.classList.contains('hidden')
-                ? 'Show Description'
-                : 'Hide Description';
+            const quantityText = card.querySelector('.quantity-text');
+            let quantity = parseInt(quantityText.textContent);
+
+            if (e.target.classList.contains('quantity-plus')) {
+                quantity++;
+            } else if (e.target.classList.contains('quantity-minus') && quantity > 1) {
+                quantity--;
+            }
+
+            quantityText.textContent = quantity;
         }
     });
 
