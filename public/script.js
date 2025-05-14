@@ -1,4 +1,3 @@
-
 const menu = [
   {
     id: 1,
@@ -224,6 +223,6 @@ function attachEventListeners() {
     document.getElementById('success-modal').classList.add('hidden');
   });
   document.getElementById('close-error-modal').addEventListener('click', () => {
-    document.getElementById('error-modal').classList.add('hidden');
+    document.getElementById('error-modal').classList.remove('hidden');
   });
 }

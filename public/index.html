@@ -1,71 +1,376 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daal Mail - Order Now</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daal Mail - Order Now</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        main {
+            flex-grow: 1;
+            margin-bottom: 80px;
+            /* Space for the submit button */
+        }
+
+        #submit-order-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 15px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .qty-btn {
+            background-color: #e5e7eb;
+            /* Tailwind's gray-200 */
+            color: #4b5563;
+            /* Tailwind's gray-700 */
+        }
+
+        .qty-btn:hover {
+            background-color: #d1d5db;
+            /* Tailwind's gray-300 */
+        }
+    </style>
 </head>
+
 <body class="bg-gray-100 text-gray-800">
-  <!-- Header -->
-  <header class="bg-[#FF5722] text-white p-4 shadow-md sticky top-0 z-50">
-    <div class="flex justify-between items-center">
-      <h1 class="text-xl font-bold">Daal Mail</h1>
-      <span class="text-sm">Home-style Food</span>
-    </div>
-  </header>
-
-  <!-- Menu -->
-  <main class="p-4 space-y-6">
-    <h2 class="text-lg font-semibold">What would you like to eat?</h2>
-
-    <div id="menu-container" class="grid grid-cols-1 gap-5">
-      <!-- Menu items injected by JS -->
-    </div>
-
-    <!-- Cart -->
-    <section id="cart-section" class="bg-white rounded-xl p-4 shadow">
-      <h3 class="text-lg font-semibold mb-2">Your Cart</h3>
-      <div id="cart-items" class="text-sm text-gray-500 italic mb-4">
-        No items in your cart
-      </div>
-      <div class="flex justify-between items-center border-t pt-3">
-        <div>
-          <span class="font-semibold text-base">Total:</span>
-          <span id="cart-total" class="text-[#FF5722] font-bold text-lg">₹0</span>
+    <header class="bg-[#FF5722] text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl font-bold">Daal Mail</h1>
+            <span class="text-sm">Home-style Food</span>
         </div>
-        <button id="order-btn" class="bg-[#FF5722] hover:bg-[#FF7043] text-white px-6 py-2 rounded-md font-semibold transition-all">
-          Submit Order
+    </header>
+
+    <main class="p-4 space-y-6">
+        <h2 class="text-lg font-semibold">What would you like to eat?</h2>
+
+        <div id="menu-container" class="grid grid-cols-2 gap-4">
+        </div>
+
+        <section id="cart-section" class="bg-white rounded-xl p-4 shadow mt-6">
+            <h3 class="text-lg font-semibold mb-2">Your Cart</h3>
+            <div id="cart-items" class="text-sm text-gray-500 italic mb-4">
+                No items in your cart
+            </div>
+            <div class="flex justify-between items-center border-t pt-3">
+                <div>
+                    <span class="font-semibold text-base">Total:</span>
+                    <span id="cart-total" class="text-[#FF5722] font-bold text-lg">₹0</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="submit-order-bottom" class="p-4">
+        <button id="submit-order-btn-bottom"
+            class="bg-[#FF5722] hover:bg-[#FF7043] text-white px-6 py-3 rounded-md font-semibold w-full transition-all">
+            Submit Order
         </button>
+    </div>
+
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
+            <h3 class="text-xl font-bold text-green-600 mb-2">Order Placed!</h3>
+            <p id="order-confirmation-message" class="text-base mb-4 text-gray-700"></p>
+            <p class="text-gray-600 text-sm mb-4">Check your WhatsApp for confirmation.</p>
+            <button id="close-modal"
+                class="bg-[#FF5722] hover:bg-[#FF7043] text-white px-4 py-2 rounded-md w-full font-semibold">Close</button>
+        </div>
+    </div>
+
+    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
+            <h3 class="text-xl font-bold text-red-600 mb-2">Oops! Something went wrong</h3>
+            <p id="error-message" class="text-base mb-4 text-gray-700">Unable to place your order.</p>
+            <button id="close-error-modal" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full font-semibold">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const menu = [{
+                id: 1,
+                name: 'Dal',
+                price: 50,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'A classic lentil dish, rich and flavorful.',
+                options: [{
+                    name: 'Full',
+                    priceMultiplier: 1
+                }, {
+                    name: 'Half',
+                    priceMultiplier: 0.5
+                }]
+            },
+            {
+                id: 2,
+                name: 'Chole',
+                price: 60,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'Spicy and tangy chickpea curry.',
+                options: [{
+                    name: 'Full',
+                    priceMultiplier: 1
+                }, {
+                    name: 'Half',
+                    priceMultiplier: 0.5
+                }]
+            },
+            {
+                id: 3,
+                name: 'Rajma',
+                price: 55,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'Red kidney bean curry, a North Indian favorite.',
+                options: [{
+                    name: 'Full',
+                    priceMultiplier: 1
+                }, {
+                    name: 'Half',
+                    priceMultiplier: 0.5
+                }]
+            },
+            {
+                id: 4,
+                name: 'Kadi',
+                price: 45,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'Yogurt-based curry with gram flour dumplings.',
+                options: [{
+                    name: 'Full',
+                    priceMultiplier: 1
+                }, {
+                    name: 'Half',
+                    priceMultiplier: 0.5
+                }]
+            },
+            {
+                id: 5,
+                name: 'Rice',
+                price: 30,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'Plain steamed rice, perfect accompaniment to any dish.',
+                options: [{
+                    name: 'Regular',
+                    priceMultiplier: 1
+                }]
+            },
+            {
+                id: 6,
+                name: 'Bread',
+                price: 20,
+                imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg',
+                description: 'Assorted Indian breads (Roti, Naan).',
+                options: [{
+                    name: '1 Qty',
+                    priceMultiplier: 1
+                }]
+            }
+        ];
+
+        let waNumber = '';
+        let cart = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            waNumber = getWaNumberFromUrl();
+            renderMenu();
+            attachEventListeners();
+        });
+
+        function getWaNumberFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('waNumber');
+        }
+
+        function renderMenu() {
+            const menuContainer = document.getElementById('menu-container');
+            menuContainer.innerHTML = '';
+
+            menu.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card bg-white rounded-xl shadow p-4';
+                card.dataset.id = item.id;
+
+                let optionsHtml = '';
+                if (item.options && item.options.length > 1) {
+                    optionsHtml = `<div class="options flex justify-center gap-2 mt-4">`;
+                    item.options.forEach(option => {
+                        optionsHtml += `
+          <input type="radio" id="${item.id}-${option.name}" name="option-${item.id}" value="${option.name}" data-price-multiplier="${option.priceMultiplier}" class="hidden peer">
+          <label for="${item.id}-${option.name}" class="text-sm px-3 py-1 border rounded-full cursor-pointer peer-checked:bg-[#FF7043] peer-checked:text-white">
+            ${option.name}
+          </label>
+        `;
+                    });
+                    optionsHtml += `</div>`;
+                }
+
+                card.innerHTML = `
+      <img src="${item.imageUrl}" class="w-full h-32 object-cover rounded-lg mb-2" />
+      <h3 class="font-semibold text-lg">${item.name}</h3>
+      <p class="description text-sm text-gray-600 hidden">${item.description}</p>
+      <button class="description-btn text-xs text-[#FF5722] mt-1 underline">Show Description</button>
+      <div class="mt-2 flex justify-between items-center">
+        <span class="text-[#FF5722] font-bold text-lg">₹${item.price}</span>
+        <button class="add-to-cart bg-[#FF5722] hover:bg-[#FF7043] text-white px-4 py-1 rounded font-medium">Add</button>
       </div>
-    </section>
-  </main>
+      ${optionsHtml}
+    `;
 
-  <!-- Success Modal -->
-  <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
-      <h3 class="text-xl font-bold text-green-600 mb-2">Order Placed!</h3>
-      <p id="order-confirmation-message" class="text-base mb-4 text-gray-700"></p>
-      <p class="text-gray-600 text-sm mb-4">Check your WhatsApp for confirmation.</p>
-      <button id="close-modal" class="bg-[#FF5722] hover:bg-[#FF7043] text-white px-4 py-2 rounded-md w-full font-semibold">Close</button>
-    </div>
-  </div>
+                menuContainer.appendChild(card);
+            });
+        }
 
-  <!-- Error Modal -->
-  <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
-      <h3 class="text-xl font-bold text-red-600 mb-2">Oops! Something went wrong</h3>
-      <p id="error-message" class="text-base mb-4 text-gray-700">Unable to place your order.</p>
-      <button id="close-error-modal" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full font-semibold">Close</button>
-    </div>
-  </div>
+        function addToCart(id) {
+            const item = menu.find(m => m.id === id);
+            if (!item) return;
 
-  <script src="script.js"></script>
+            const selectedOption = document.querySelector(`input[name="option-${id}"]:checked`);
+            const priceMultiplier = selectedOption ? parseFloat(selectedOption.dataset.priceMultiplier) : 1;
+            const portion = selectedOption ? selectedOption.value : item.options ? .[0] ?.name || '';
+            const quantity = 1;
+            const price = item.price * priceMultiplier;
+
+            const existing = cart.find(i => i.id === id && i.portion === portion);
+            if (existing) {
+                existing.quantity += 1;
+                existing.price += price;
+            } else {
+                cart.push({
+                    id,
+                    name: item.name,
+                    portion,
+                    quantity,
+                    price
+                });
+            }
+
+            updateCart();
+        }
+
+        function removeFromCart(id) {
+            const index = cart.findIndex(i => i.id === id);
+            if (index !== -1) {
+                cart.splice(index, 1);
+                updateCart();
+            }
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-gray-500 italic">No items in your cart</p>';
+                cartTotal.textContent = '₹0';
+                return;
+            }
+
+            let total = 0;
+            let html = '<ul class="divide-y">';
+            cart.forEach(item => {
+                total += item.price;
+                html += `
+      <li class="py-2 flex justify-between text-sm">
+        <span>${item.name} ${item.portion ? `(${item.portion})` : ''} x ${item.quantity}</span>
+        <span class="text-[#FF5722] font-medium">₹${item.price.toFixed(2)}</span>
+      </li>
+    `;
+            });
+            html += '</ul>';
+
+            cartItems.innerHTML = html;
+            cartTotal.textContent = `₹${total.toFixed(2)}`;
+        }
+
+        async function submitOrder() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+
+            if (!waNumber) {
+                showErrorModal('WhatsApp number not found. Please return to the bot.');
+                return;
+            }
+
+            const total = cart.reduce((sum, i) => sum + i.price, 0);
+            const orderItems = cart.map(i => ({
+                name: i.name,
+                quantity: i.quantity,
+                portion: i.portion,
+                price: i.price / i.quantity
+            }));
+
+            try {
+                const res = await fetch('/.netlify/functions/processOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        waNumber,
+                        orderItems,
+                        total
+                    })
+                });
+                const result = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('order-confirmation-message').textContent =
+                        `Your order #${result.orderId} has been placed successfully!`;
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    cart = [];
+                    updateCart();
+                } else {
+                    showErrorModal(result.error || 'Failed to place order.');
+                }
+            } catch (err) {
+                console.error(err);
+                showErrorModal('Network error. Please try again.');
+            }
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+
+        function attachEventListeners() {
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-item')) {
+                    const id = parseInt(e.target.dataset.id);
+                    removeFromCart(id);
+                }
+                if (e.target.classList.contains('description-btn')) {
+                    const desc = e.target.closest('.item-card').querySelector('.description');
+                    desc.classList.toggle('hidden');
+                    e.target.textContent = desc.classList.contains('hidden') ? 'Show Description' :
+                        'Hide Description';
+                }
+            });
+
+            document.getElementById('submit-order-btn-bottom').addEventListener('click', submitOrder);
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('success-modal').classList.add('hidden');
+            });
+            document.getElementById('close-error-modal').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+        }
+    </script>
 </body>
+
 </html>
