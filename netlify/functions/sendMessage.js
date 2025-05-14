@@ -8,8 +8,9 @@ exports.handler = async (event) => {
     const response = await axios.post(
       `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
-        messaging_product: "whatsapp", // Add this line
+        messaging_product: "whatsapp", // ✅ REQUIRED
         to: phone,
+        type: "text", // ✅ MISSING FIELD: this tells WhatsApp you're sending a text message
         text: { body: message }
       },
       {
@@ -25,7 +26,7 @@ exports.handler = async (event) => {
       body: JSON.stringify(response.data)
     };
   } catch (error) {
-    console.error("sendMessage error:", error); // Add more detailed error logging
+    console.error("sendMessage error:", error.response?.data || error.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })
