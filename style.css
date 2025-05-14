@@ -1,0 +1,28 @@
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f3f4f6;
+}
+
+button {
+  transition: background-color 0.3s ease;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.item-card.selected {
+  border: 2px solid #FF5722;
+}
+
+.hidden {
+  display: none;
+}
+
+.description {
+  color: #555;
+}
