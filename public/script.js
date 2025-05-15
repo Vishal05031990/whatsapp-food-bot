@@ -74,13 +74,15 @@ function renderMenu() {
         card.innerHTML = `
             <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-32 object-cover rounded-t-lg">
             <div class="p-6">
-                <h3 class="font-semibold text-xl text-gray-800 mb-2">${item.name}</h3>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-xl text-gray-800">${item.name}</h3>
+                    <span class="text-green-600 font-bold text-lg">₹${item.price}</span>
+                </div>
                 <p class="text-gray-600 text-sm mb-4 description hidden">${item.description}</p>
                  <button class="description-btn text-blue-500 hover:text-blue-700 text-sm mb-4 transition-colors duration-200">
                     Show Description
                 </button>
                 <div class="flex justify-between items-center mt-2">
-                    <span class="text-green-600 font-bold text-lg">₹${item.price}</span>
                     <button class="add-to-cart bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors duration-300 font-semibold">
                         Add
                     </button>
@@ -96,7 +98,6 @@ function renderMenu() {
                 </div>
             </div>
         `;
-
         menuContainer.appendChild(card);
     });
 }
@@ -105,7 +106,7 @@ function renderMenu() {
 function updateCart() {
     const cartItemsElement = document.getElementById('cart-items');
     const cartTotalElement = document.getElementById('cart-total');
-    
+
     if (cart.length === 0) {
         cartItemsElement.innerHTML = '<p class="text-gray-500 italic">No items in your cart</p>';
         cartTotalElement.textContent = '₹0';
@@ -114,7 +115,7 @@ function updateCart() {
 
     let total = 0;
     let cartHTML = '<ul class="divide-y divide-gray-200">';
-    
+
     cart.forEach(item => {
         total += item.price;
         cartHTML += `
@@ -127,13 +128,12 @@ function updateCart() {
                     Remove
                 </button>
             </li>
-        `;
-    });
-    
+        `;    });
+
     cartHTML += '</ul>';
     cartItemsElement.innerHTML = cartHTML;
     cartTotalElement.textContent = `₹${total.toFixed(2)}`;
-    
+
     // Add event listeners to remove buttons
     document.querySelectorAll('.remove-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -148,7 +148,7 @@ function addToCart(id, quantity) {
     const item = menu.find(item => item.id === id);
     if (item) {
         const existingItem = cart.find(cartItem => cartItem.id === id);
-        
+
         if (existingItem) {
             existingItem.quantity += quantity;
             existingItem.price = item.price * existingItem.quantity;
@@ -159,7 +159,7 @@ function addToCart(id, quantity) {
                 quantity: quantity
             });
         }
-        
+
         updateCart();
     }
 }
@@ -192,7 +192,7 @@ async function submitOrder() {
             quantity: item.quantity,
             price: item.price / item.quantity, // Price per unit
         }));
-        
+
         const response = await fetch('/.netlify/functions/processOrder', {
             method: 'POST',
             headers: {
@@ -206,13 +206,13 @@ async function submitOrder() {
         });
 
         const result = await response.json();
-        
+
         if (response.ok) {
             // Show success modal
             document.getElementById('order-confirmation-message').textContent =
                 `Your order #${result.orderId} has been placed successfully!`;
             document.getElementById('success-modal').classList.remove('hidden');
-            
+
             // Clear cart
             cart = [];
             updateCart();
@@ -267,7 +267,7 @@ function attachEventListeners() {
     document.getElementById('close-modal').addEventListener('click', () => {
         document.getElementById('success-modal').classList.add('hidden');
     });
-    
+
     document.getElementById('close-error-modal').addEventListener('click', () => {
         document.getElementById('error-modal').classList.add('hidden');
     });
