@@ -23,6 +23,11 @@
         .quantity-button:hover {
             opacity: 0.8;
         }
+
+        .item-card {
+             margin-bottom: 1rem; /* Add some margin between items */
+        }
+
     </style>
 </head>
 <body class="bg-gray-50">
@@ -114,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function renderMenu() {
   const menuContainer = document.getElementById('menu-container');
   menuContainer.innerHTML = '';
+  menuContainer.classList.add('grid', 'sm:grid-cols-2', 'gap-6'); // Ensure 2 columns on small screens and up
 
   menu.forEach((item) => {
     const card = document.createElement('div');
@@ -131,7 +137,7 @@ function renderMenu() {
       <div class="mt-2 flex items-center justify-between">
         <div class="quantity-adjust flex items-center gap-2">
           <button class="quantity-button quantity-minus">-</button>
-          <span class="quantity-text">1</span>
+          <span class="quantity-text">0</span>
           <button class="quantity-button quantity-plus">+</button>
         </div>
         <button class="add-to-cart bg-green-600 text-white px-4 py-1 rounded-md">Add</button>
@@ -177,15 +183,15 @@ function updateCart() {
     cartItemDiv.className = 'cart-item flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0';
     cartItemDiv.innerHTML = `
           <div>
-              <span class="font-semibold text-gray-800">${item.name} x ${item.quantity}</span>
+            <span class="font-semibold text-gray-800">${item.name} x ${item.quantity}</span>
           </div>
           <div class="flex items-center gap-4">
-              <span class="text-green-600 font-bold">₹${item.price.toFixed(2)}</span>
-              <button class="remove-item text-red-500 hover:text-red-700 transition-colors duration-200" data-id="${item.id}">
-                  Remove
-              </button>
+            <span class="text-green-600 font-bold">₹${item.price.toFixed(2)}</span>
+            <button class="remove-item text-red-500 hover:text-red-700 transition-colors duration-200" data-id="${item.id}">
+              Remove
+            </button>
           </div>
-      `;
+        `;
     cartItemsContainer.appendChild(cartItemDiv);
     total += item.price;
   });
@@ -224,7 +230,7 @@ function attachEventListeners() {
       const card = target.closest('.item-card');
       const quantityText = card.querySelector('.quantity-text');
       let quantity = parseInt(quantityText.textContent, 10);
-      if (quantity > 1) {
+      if (quantity > 0) {
         quantity--;
       }
       quantityText.textContent = quantity;
@@ -250,15 +256,15 @@ function attachEventListeners() {
       return;
     }
 
-    //  For demonstration, I'll just log the cart to the console
+    // For demonstration, I'll just log the cart to the console
     console.log('Order submitted:', cart);
     alert('Order submitted! (Check console for order details)');
 
-    //  Clear the cart and update the display
+    // Clear the cart and update the display
     cart = [];
     updateCart();
 
-    //  Show a confirmation message (you'd replace this with your actual submission logic)
+    // Show a confirmation message (you'd replace this with your actual submission logic)
     document.getElementById('order-confirmation-message').textContent =
       'Your order has been placed successfully!';
     document.getElementById('success-modal').classList.remove('hidden');
