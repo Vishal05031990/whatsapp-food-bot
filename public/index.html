@@ -54,36 +54,30 @@
 
         let cart = {};
         const waNumber = new URLSearchParams(window.location.search).get('waNumber');
+        const botNumber = new URLSearchParams(window.location.search).get('botNumber'); // NEW: Get bot's number
 
-        // New: Function to verify user state with the bot's backend
+        // Function to verify user state with the bot's backend
         async function verifyUserState(number) {
             try {
-                // This fetches from the Netlify function which will query your MongoDB
                 const response = await fetch(`/.netlify/functions/checkUserState?waNumber=${number}`);
                 const result = await response.json();
 
-                // Define the stages where the user is allowed to see and interact with the menu
-                // These stages imply the user has gone through location/address selection
-                // 'collect_address' is also included here as the user would be on the menu link
-                // right after providing location, before entering address.
                 const allowedStages = ['menu', 'choose_address', 'collect_address', 'done'];
 
                 if (response.ok && allowedStages.includes(result.stage)) {
-                    // User state is valid, proceed to render menu and attach event listeners
                     renderMenu();
                     updateCartDisplay();
-                    attachEventListeners(); // Attach listeners for menu and cart interaction
+                    attachEventListeners();
                 } else {
-                    // User state is not valid, redirect back to WhatsApp bot
                     alert('Your session has expired or is not valid. Please start your order from the WhatsApp bot to ensure correct delivery details.');
-                    // Construct a WhatsApp deep link to restart the conversation
-                    window.location.href = `https://wa.me/${number}?text=Hi`;
+                    // Redirect to the bot's WhatsApp number
+                    window.location.href = `https://wa.me/${botNumber || ''}?text=Hi`;
                 }
             } catch (error) {
                 console.error('Error verifying user state:', error);
                 alert('Could not verify your session due to a network error. Please start your order from the WhatsApp bot.');
                 // Fallback redirect if API call fails
-                window.location.href = `https://wa.me/${number}?text=Hi`;
+                window.location.href = `https://wa.me/${botNumber || ''}?text=Hi`;
             }
         }
 
@@ -132,7 +126,6 @@
             totalDiv.textContent = `₹${total.toFixed(2)}`;
         }
 
-        // Moved event listeners into a function to be called after state verification
         function attachEventListeners() {
             document.getElementById('menu-container').addEventListener('click', e => {
                 const card = e.target.closest('[data-id]');
@@ -164,7 +157,6 @@
 
                 const total = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
                 try {
-                    // Ensure this endpoint matches your bot's order creation endpoint
                     const res = await fetch('/create-order', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -175,7 +167,7 @@
                         document.getElementById('order-confirmation-message').textContent = `Order placed successfully! Order Number: ${result.order.orderNumber}`;
                         document.getElementById('success-modal').classList.remove('hidden');
                         cart = {};
-                        renderMenu(); // Re-render menu to reset quantities
+                        renderMenu();
                         updateCartDisplay();
                     } else {
                         document.getElementById('error-message').textContent = result.error || 'Failed to place order';
@@ -198,15 +190,18 @@
 
         // Initial call to start the verification process when the page loads
         if (waNumber) {
-            verifyUserState(waNumber);
+            if (botNumber) { // Ensure botNumber is available before proceeding
+                verifyUserState(waNumber);
+            } else {
+                document.getElementById('menu-container').innerHTML = '<p class="text-center text-lg text-red-500 mt-10">Configuration error: Bot number missing. Please open the menu link from your WhatsApp chat.</p>';
+                document.getElementById('order-btn').disabled = true;
+                document.getElementById('cart').classList.add('hidden');
+            }
         } else {
-            // If waNumber is not in the URL, disable order button and show a message.
             document.getElementById('menu-container').innerHTML = '<p class="text-center text-lg text-red-500 mt-10">Invalid access. Please open the menu link from your WhatsApp chat.</p>';
             document.getElementById('order-btn').disabled = true;
-            // Optionally hide cart section or other elements if direct access is not allowed
             document.getElementById('cart').classList.add('hidden');
         }
-
     </script>
 </body>
 </html>
