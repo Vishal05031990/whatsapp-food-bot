@@ -42,6 +42,171 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const menu = [
+            { id: 1, name: 'Dal', price: 50, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'A classic lentil dish.' },
+            { id: 2, name: 'Chole', price: 60, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Spicy chickpea curry.' },
+            { id: 3, name: 'Rajma', price: 55, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Red kidney bean curry.' },
+            { id: 4, name: 'Kadi', price: 45, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Yogurt-based gram flour curry.' },
+            { id: 5, name: 'Rice', price: 30, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Plain steamed rice.' },
+            { id: 6, name: 'Bread', price: 20, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Indian breads like roti, naan.' }
+        ];
+
+        let cart = {};
+        const waNumber = new URLSearchParams(window.location.search).get('waNumber');
+
+        // New: Function to verify user state with the bot's backend
+        async function verifyUserState(number) {
+            try {
+                // This fetches from the Netlify function which will query your MongoDB
+                const response = await fetch(`/.netlify/functions/checkUserState?waNumber=${number}`);
+                const result = await response.json();
+
+                // Define the stages where the user is allowed to see and interact with the menu
+                // These stages imply the user has gone through location/address selection
+                // 'collect_address' is also included here as the user would be on the menu link
+                // right after providing location, before entering address.
+                const allowedStages = ['menu', 'choose_address', 'collect_address', 'done'];
+
+                if (response.ok && allowedStages.includes(result.stage)) {
+                    // User state is valid, proceed to render menu and attach event listeners
+                    renderMenu();
+                    updateCartDisplay();
+                    attachEventListeners(); // Attach listeners for menu and cart interaction
+                } else {
+                    // User state is not valid, redirect back to WhatsApp bot
+                    alert('Your session has expired or is not valid. Please start your order from the WhatsApp bot to ensure correct delivery details.');
+                    // Construct a WhatsApp deep link to restart the conversation
+                    window.location.href = `https://wa.me/${number}?text=Hi`;
+                }
+            } catch (error) {
+                console.error('Error verifying user state:', error);
+                alert('Could not verify your session due to a network error. Please start your order from the WhatsApp bot.');
+                // Fallback redirect if API call fails
+                window.location.href = `https://wa.me/${number}?text=Hi`;
+            }
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+            menu.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow overflow-hidden flex flex-col';
+                card.dataset.id = item.id;
+                card.innerHTML = `
+                    <img src="${item.imageUrl}" class="w-full h-28 object-cover" />
+                    <div class="p-3 flex flex-col gap-1 items-center">
+                        <h3 class="font-semibold text-sm text-center">${item.name}</h3>
+                        <p class="text-xs text-gray-500 text-center">${item.description}</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <button class="decrease-qty qty-btn px-2 py-1 rounded text-sm">-</button>
+                            <span class="quantity text-sm font-medium">0</span>
+                            <button class="increase-qty qty-btn px-2 py-1 rounded text-sm">+</button>
+                        </div>
+                        <div class="mt-2 text-green-600 font-bold text-sm">₹${item.price}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateCartDisplay() {
+            const itemsDiv = document.getElementById('cart-items');
+            const totalDiv = document.getElementById('cart-total');
+            const keys = Object.keys(cart);
+            if (!keys.length) {
+                itemsDiv.innerHTML = '<p class="text-gray-500 italic">No items in your cart</p>';
+                totalDiv.textContent = '₹0';
+                return;
+            }
+            let total = 0;
+            let html = '<ul class="text-sm">';
+            keys.forEach(id => {
+                const item = cart[id];
+                total += item.price * item.quantity;
+                html += `<li class="flex justify-between py-1"><span>${item.name} x ${item.quantity}</span><span>₹${(item.price * item.quantity).toFixed(2)}</span></li>`;
+            });
+            html += '</ul>';
+            itemsDiv.innerHTML = html;
+            totalDiv.textContent = `₹${total.toFixed(2)}`;
+        }
+
+        // Moved event listeners into a function to be called after state verification
+        function attachEventListeners() {
+            document.getElementById('menu-container').addEventListener('click', e => {
+                const card = e.target.closest('[data-id]');
+                if (!card) return;
+                const id = parseInt(card.dataset.id);
+                const item = menu.find(i => i.id === id);
+                const qtyEl = card.querySelector('.quantity');
+                let qty = parseInt(qtyEl.textContent);
+                if (e.target.classList.contains('increase-qty')) qty++;
+                if (e.target.classList.contains('decrease-qty')) qty = Math.max(0, qty - 1);
+                qtyEl.textContent = qty;
+                if (qty === 0) delete cart[id];
+                else cart[id] = { id, name: item.name, quantity: qty, price: item.price };
+                updateCartDisplay();
+            });
+
+            document.getElementById('order-btn').addEventListener('click', async () => {
+                const orderItems = Object.values(cart);
+                if (!orderItems.length) {
+                    alert('Cart is empty!');
+                    return;
+                }
+
+                if (!waNumber) {
+                    document.getElementById('error-message').textContent = 'WhatsApp number not found. Please return to the bot.';
+                    document.getElementById('error-modal').classList.remove('hidden');
+                    return;
+                }
+
+                const total = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+                try {
+                    // Ensure this endpoint matches your bot's order creation endpoint
+                    const res = await fetch('/create-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ waNumber, orderItems, total })
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        document.getElementById('order-confirmation-message').textContent = `Order placed successfully! Order Number: ${result.order.orderNumber}`;
+                        document.getElementById('success-modal').classList.remove('hidden');
+                        cart = {};
+                        renderMenu(); // Re-render menu to reset quantities
+                        updateCartDisplay();
+                    } else {
+                        document.getElementById('error-message').textContent = result.error || 'Failed to place order';
+                        document.getElementById('error-modal').classList.remove('hidden');
+                    }
+                } catch (error) {
+                    document.getElementById('error-message').textContent = error.message;
+                    document.getElementById('error-modal').classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('success-modal').classList.add('hidden');
+            });
+
+            document.getElementById('close-error-modal').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+        }
+
+        // Initial call to start the verification process when the page loads
+        if (waNumber) {
+            verifyUserState(waNumber);
+        } else {
+            // If waNumber is not in the URL, disable order button and show a message.
+            document.getElementById('menu-container').innerHTML = '<p class="text-center text-lg text-red-500 mt-10">Invalid access. Please open the menu link from your WhatsApp chat.</p>';
+            document.getElementById('order-btn').disabled = true;
+            // Optionally hide cart section or other elements if direct access is not allowed
+            document.getElementById('cart').classList.add('hidden');
+        }
+
+    </script>
 </body>
 </html>
