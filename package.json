@@ -7,10 +7,12 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "mongodb": "^5.8.0",
-    "venom-bot": "^5.0.21"
+    "axios": "^1.6.0",       // Updated to latest version if available
+    "body-parser": "^1.20.2", // Newly added or updated
+    "dotenv": "^16.3.1",     // Updated to latest version if available
+    "express": "^4.19.2",    // Newly added or updated
+    "mongodb": "^6.5.0",     // Updated to latest version if available
+    "uuid": "^9.0.1",        // Newly added
+    "venom-bot": "^5.0.21"   // Still present, though not used in index.js for WhatsApp API
   }
 }
-
