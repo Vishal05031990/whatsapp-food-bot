@@ -7,6 +7,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'daalMail';
 const COLLECTION_NAME = 'orders'; // This is for orders
 
+// Netlify automatically provides the base URL of your deployed site
+// This is crucial for function-to-function calls using full URLs
+const NETLIFY_SITE_URL = process.env.URL; // This variable is provided by Netlify
+
 // Reuse DB connection across requests
 let cachedDb = null;
 const connectToDatabase = async () => {
@@ -57,9 +61,12 @@ Items:
 ${orderItems.map(item => `- ${item.name} x ${item.quantity}`).join('\n')}
 Status: ${order.status}
 `;
-        // Directly call the sendMessage function within Netlify Functions context
-        // The path depends on your netlify.toml and function name
-        const sendMessageUrl = `/.netlify/functions/sendMessage`; // Correct path for Netlify Function
+        // CONSTRUCT THE FULL ABSOLUTE URL FOR THE sendMessage FUNCTION
+        // Use NETLIFY_SITE_URL (e.g., https://sweet-sopapillas-fb37b3.netlify.app)
+        // and append the function path.
+        const sendMessageUrl = `${NETLIFY_SITE_URL}/.netlify/functions/sendMessage`;
+
+        console.log(`Attempting to call sendMessage function at: ${sendMessageUrl}`); // Add for debugging
 
         const sendMessageResponse = await axios.post(
             sendMessageUrl,
@@ -67,21 +74,20 @@ Status: ${order.status}
                 phone: formattedPhone,
                 message: `Your order has been placed!\n${orderSummary}`,
             }
-            // No need for headers here if sendMessage.js expects a direct payload
-            // and handles its own WhatsApp API token.
         );
 
         if (sendMessageResponse.status !== 200) {
             console.error("❌ Failed to send WhatsApp message via sendMessage function");
-            // You might still want to return a success to the client if the order was saved
-            // but log the WhatsApp failure.
+        } else {
+            console.log("✅ WhatsApp message sent successfully!");
         }
+
 
         return {
             statusCode: 200,
             body: JSON.stringify({
                 success: true,
-                order: { orderNumber: order.orderNumber }, // Consistent with frontend's expectation
+                order: { orderNumber: order.orderNumber },
                 message: 'Order placed successfully',
             }),
         };
