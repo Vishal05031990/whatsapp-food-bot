@@ -233,7 +233,13 @@
                     const res = await fetch(BACKEND_CREATE_ORDER_ENDPOINT, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ waNumber, orderItems, total })
+                        body: JSON.stringify({
+                            waNumber,
+                            orderItems,
+                            total,
+                            sessionId: sessionId,   // Pass sessionId
+                            phoneNumber: waNumber   // Pass phoneNumber (waNumber)
+                        })
                     });
                     const result = await res.json();
                     if (res.ok && result.success) { // Check for result.success based on your processOrder response
@@ -242,6 +248,14 @@
                         cart = {};
                         renderMenu(); // Re-render menu to reset quantities
                         updateCartDisplay(); // Update cart display after clearing
+                        // Disable order button and cart after successful order
+                        orderBtn.disabled = true;
+                        cartDiv.classList.add('hidden');
+                        // Show session status message to reflect completion
+                        sessionStatusMessageDiv.classList.remove('hidden');
+                        sessionStatusMessageDiv.classList.add('session-invalid'); // Mark as invalid because session is completed
+                        sessionStatusMessageDiv.innerHTML = 'Your order has been placed. This session is now complete. Please start a new order from WhatsApp.';
+
                     } else {
                         document.getElementById('error-message').textContent = result.error || 'Failed to place order';
                         document.getElementById('error-modal').classList.remove('hidden');
