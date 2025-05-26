@@ -10,21 +10,53 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Add some basic styles for the new messages */
+        .session-message {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+        }
+        .session-valid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .session-invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #loading-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div class="container mx-auto p-4">
         <h1 class="text-3xl font-semibold text-center text-gray-800 mb-6">Menu</h1>
-        <div id="menu-container" class="grid grid-cols-1 gap-4">
-            </div>
-        <div id="cart" class="mt-10">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Cart</h2>
-            <div id="cart-items" class="space-y-4">
+
+        <div id="loading-message">Loading menu...</div>
+        <div id="session-status-message" class="session-message hidden"></div>
+
+        <div id="main-content" class="hidden">
+            <div id="menu-container" class="grid grid-cols-1 gap-4">
                 </div>
-            <div class="flex justify-between items-center mt-6">
-                <span class="text-gray-800 font-semibold">Total: </span>
-                <span id="cart-total" class="text-green-600 text-xl">₹0</span>
+            <div id="cart" class="mt-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Cart</h2>
+                <div id="cart-items" class="space-y-4">
+                    </div>
+                <div class="flex justify-between items-center mt-6">
+                    <span class="text-gray-800 font-semibold">Total: </span>
+                    <span id="cart-total" class="text-green-600 text-xl">₹0</span>
+                </div>
+                <button id="order-btn" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">Place Order</button>
             </div>
-            <button id="order-btn" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">Place Order</button>
         </div>
     </div>
 
@@ -43,6 +75,11 @@
     </div>
 
     <script>
+        // IMPORTANT: Replace with the actual URL of your deployed Node.js backend server
+        // This should be the same as your BACKEND_SERVER_URL in your index.js's .env file
+        const BACKEND_VALIDATE_ENDPOINT = 'YOUR_BACKEND_SERVER_URL/validate-session';
+        const BACKEND_CREATE_ORDER_ENDPOINT = 'YOUR_BACKEND_SERVER_URL/create-order'; // Your existing order endpoint
+
         const menu = [
             { id: 1, name: 'Dal', price: 50, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'A classic lentil dish.' },
             { id: 2, name: 'Chole', price: 60, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'Spicy chickpea curry.' },
@@ -53,31 +90,68 @@
         ];
 
         let cart = {};
-        const waNumber = new URLSearchParams(window.location.search).get('waNumber');
-        const botNumber = new URLSearchParams(window.location.search).get('botNumber'); // NEW: Get bot's number
+        const urlParams = new URLSearchParams(window.location.search);
+        const waNumber = urlParams.get('phoneNumber'); // Changed from 'waNumber' to 'phoneNumber' to match backend
+        const sessionId = urlParams.get('sessionId');
 
-        // Function to verify user state with the bot's backend
-        async function verifyUserState(number) {
+        const loadingMessageDiv = document.getElementById('loading-message');
+        const sessionStatusMessageDiv = document.getElementById('session-status-message');
+        const mainContentDiv = document.getElementById('main-content');
+        const orderBtn = document.getElementById('order-btn');
+        const cartDiv = document.getElementById('cart');
+
+
+        // Function to validate session with the backend
+        async function validateSession() {
+            loadingMessageDiv.classList.remove('hidden'); // Show loading message
+            mainContentDiv.classList.add('hidden'); // Hide content initially
+            sessionStatusMessageDiv.classList.add('hidden'); // Hide status message
+
+            if (!waNumber || !sessionId) {
+                loadingMessageDiv.classList.add('hidden');
+                sessionStatusMessageDiv.classList.remove('hidden');
+                sessionStatusMessageDiv.classList.add('session-invalid');
+                sessionStatusMessageDiv.innerHTML = 'Invalid access. Please go back to WhatsApp and say "hello" to start the process to get a valid menu link.';
+                orderBtn.disabled = true;
+                cartDiv.classList.add('hidden');
+                return;
+            }
+
             try {
-                const response = await fetch(`/.netlify/functions/checkUserState?waNumber=${number}`);
+                const response = await fetch(BACKEND_VALIDATE_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sessionId, phoneNumber: waNumber }), // Use phoneNumber to match backend
+                });
+
                 const result = await response.json();
+                loadingMessageDiv.classList.add('hidden'); // Hide loading message
 
-                const allowedStages = ['menu', 'choose_address', 'collect_address', 'done'];
-
-                if (response.ok && allowedStages.includes(result.stage)) {
+                if (response.ok && result.valid) {
+                    sessionStatusMessageDiv.classList.remove('hidden');
+                    sessionStatusMessageDiv.classList.add('session-valid');
+                    sessionStatusMessageDiv.textContent = 'Session valid. Welcome to the menu!';
+                    mainContentDiv.classList.remove('hidden'); // Show the main menu content
                     renderMenu();
                     updateCartDisplay();
                     attachEventListeners();
                 } else {
-                    alert('Your session has expired or is not valid. Please start your order from the WhatsApp bot to ensure correct delivery details.');
-                    // Redirect to the bot's WhatsApp number
-                    window.location.href = `https://wa.me/${botNumber || ''}?text=Hi`;
+                    sessionStatusMessageDiv.classList.remove('hidden');
+                    sessionStatusMessageDiv.classList.add('session-invalid');
+                    sessionStatusMessageDiv.innerHTML = result.message || 'Session invalid or expired. Please go back to WhatsApp and say "hello" to restart the process.';
+                    orderBtn.disabled = true;
+                    cartDiv.classList.add('hidden');
                 }
             } catch (error) {
-                console.error('Error verifying user state:', error);
-                alert('Could not verify your session due to a network error. Please start your order from the WhatsApp bot.');
-                // Fallback redirect if API call fails
-                window.location.href = `https://wa.me/${botNumber || ''}?text=Hi`;
+                console.error('Error during session validation:', error);
+                loadingMessageDiv.classList.add('hidden');
+                sessionStatusMessageDiv.classList.remove('hidden');
+                sessionStatusMessageDiv.classList.add('session-invalid');
+                sessionStatusMessageDiv.innerHTML = 'Could not connect to the server to validate your session. Please try again later or restart from WhatsApp.';
+                orderBtn.disabled = true;
+                cartDiv.classList.add('hidden');
             }
         }
 
@@ -157,7 +231,7 @@
 
                 const total = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
                 try {
-                    const res = await fetch('/create-order', {
+                    const res = await fetch(BACKEND_CREATE_ORDER_ENDPOINT, { // Use new constant for clarity
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ waNumber, orderItems, total })
@@ -167,8 +241,8 @@
                         document.getElementById('order-confirmation-message').textContent = `Order placed successfully! Order Number: ${result.order.orderNumber}`;
                         document.getElementById('success-modal').classList.remove('hidden');
                         cart = {};
-                        renderMenu();
-                        updateCartDisplay();
+                        renderMenu(); // Re-render menu to reset quantities
+                        updateCartDisplay(); // Update cart display after clearing
                     } else {
                         document.getElementById('error-message').textContent = result.error || 'Failed to place order';
                         document.getElementById('error-modal').classList.remove('hidden');
@@ -188,20 +262,8 @@
             });
         }
 
-        // Initial call to start the verification process when the page loads
-        if (waNumber) {
-            if (botNumber) { // Ensure botNumber is available before proceeding
-                verifyUserState(waNumber);
-            } else {
-                document.getElementById('menu-container').innerHTML = '<p class="text-center text-lg text-red-500 mt-10">Configuration error: Bot number missing. Please open the menu link from your WhatsApp chat.</p>';
-                document.getElementById('order-btn').disabled = true;
-                document.getElementById('cart').classList.add('hidden');
-            }
-        } else {
-            document.getElementById('menu-container').innerHTML = '<p class="text-center text-lg text-red-500 mt-10">Invalid access. Please open the menu link from your WhatsApp chat.</p>';
-            document.getElementById('order-btn').disabled = true;
-            document.getElementById('cart').classList.add('hidden');
-        }
+        // Initial call to start the session validation process when the page loads
+        document.addEventListener('DOMContentLoaded', validateSession);
     </script>
 </body>
 </html>
