@@ -46,11 +46,11 @@
 
         <div id="main-content" class="hidden">
             <div id="menu-container" class="grid grid-cols-1 gap-4">
-                </div>
+            </div>
             <div id="cart" class="mt-10">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Cart</h2>
                 <div id="cart-items" class="space-y-4">
-                    </div>
+                </div>
                 <div class="flex justify-between items-center mt-6">
                     <span class="text-gray-800 font-semibold">Total: </span>
                     <span id="cart-total" class="text-green-600 text-xl">₹0</span>
@@ -75,10 +75,9 @@
     </div>
 
     <script>
-        // IMPORTANT: Replace with the actual URL of your deployed Node.js backend server
-        // This should be the same as your BACKEND_SERVER_URL in your index.js's .env file
-        const BACKEND_VALIDATE_ENDPOINT = 'YOUR_BACKEND_SERVER_URL/validate-session';
-        const BACKEND_CREATE_ORDER_ENDPOINT = 'YOUR_BACKEND_SERVER_URL/create-order'; // Your existing order endpoint
+        // Use relative paths for Netlify Functions
+        const BACKEND_VALIDATE_ENDPOINT = '/.netlify/functions/validateSession';
+        const BACKEND_CREATE_ORDER_ENDPOINT = '/.netlify/functions/processOrder';
 
         const menu = [
             { id: 1, name: 'Dal', price: 50, imageUrl: 'https://i.ibb.co/wnNL4s5/food-sample.jpg', description: 'A classic lentil dish.' },
@@ -91,7 +90,7 @@
 
         let cart = {};
         const urlParams = new URLSearchParams(window.location.search);
-        const waNumber = urlParams.get('phoneNumber'); // Changed from 'waNumber' to 'phoneNumber' to match backend
+        const waNumber = urlParams.get('phoneNumber');
         const sessionId = urlParams.get('sessionId');
 
         const loadingMessageDiv = document.getElementById('loading-message');
@@ -123,7 +122,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ sessionId, phoneNumber: waNumber }), // Use phoneNumber to match backend
+                    body: JSON.stringify({ sessionId, phoneNumber: waNumber }),
                 });
 
                 const result = await response.json();
@@ -231,13 +230,13 @@
 
                 const total = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
                 try {
-                    const res = await fetch(BACKEND_CREATE_ORDER_ENDPOINT, { // Use new constant for clarity
+                    const res = await fetch(BACKEND_CREATE_ORDER_ENDPOINT, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ waNumber, orderItems, total })
                     });
                     const result = await res.json();
-                    if (res.ok) {
+                    if (res.ok && result.success) { // Check for result.success based on your processOrder response
                         document.getElementById('order-confirmation-message').textContent = `Order placed successfully! Order Number: ${result.order.orderNumber}`;
                         document.getElementById('success-modal').classList.remove('hidden');
                         cart = {};
