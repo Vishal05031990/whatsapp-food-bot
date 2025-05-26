@@ -90,8 +90,8 @@
 
         let cart = {};
         const urlParams = new URLSearchParams(window.location.search);
-        const **waNumber** = urlParams.get('phoneNumber');
-        const **sessionId** = urlParams.get('sessionId'); // Ensure sessionId is correctly parsed
+        const waNumber = urlParams.get('phoneNumber');
+        const sessionId = urlParams.get('sessionId');
 
         const loadingMessageDiv = document.getElementById('loading-message');
         const sessionStatusMessageDiv = document.getElementById('session-status-message');
@@ -233,13 +233,7 @@
                     const res = await fetch(BACKEND_CREATE_ORDER_ENDPOINT, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            waNumber,
-                            orderItems,
-                            total,
-                            **sessionId: sessionId, // <-- ADD THIS LINE**
-                            **phoneNumber: waNumber // <-- ADD THIS LINE (phoneNumber is the waNumber)**
-                        })
+                        body: JSON.stringify({ waNumber, orderItems, total })
                     });
                     const result = await res.json();
                     if (res.ok && result.success) { // Check for result.success based on your processOrder response
