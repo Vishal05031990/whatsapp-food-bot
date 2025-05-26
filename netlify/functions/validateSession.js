@@ -51,15 +51,28 @@ exports.handler = async (event) => {
             };
         }
 
+        // --- NEW: Check for 'completed' status ---
+        if (session.status === 'completed') {
+            console.log(`❌ validateSession: Session already completed for sessionId: ${sessionId}`);
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ valid: false, message: 'This session has already been completed. Please start a new order from WhatsApp.' }),
+            };
+        }
+
         // Optional: Implement session expiration logic (e.g., sessions expire after 30 minutes)
         const THIRTY_MINUTES_MS = 30 * 60 * 1000;
         const now = new Date();
-        const sessionCreatedAt = new Date(session.createdAt); // Assuming 'createdAt' field in your session object
+        // Ensure 'createdAt' exists or handle its absence
+        const sessionCreatedAt = session.createdAt ? new Date(session.createdAt) : new Date(0); // Default to epoch if not present
 
         if (now.getTime() - sessionCreatedAt.getTime() > THIRTY_MINUTES_MS) {
             console.log(`❌ validateSession: Session expired for sessionId: ${sessionId}`);
-            // Optionally remove the expired session
-            await sessionsCollection.deleteOne({ _id: session._id });
+            // Optionally update the expired session to 'expired' status in DB
+            await sessionsCollection.updateOne(
+                { _id: session._id },
+                { $set: { status: 'expired', expiredAt: now } }
+            );
             return {
                 statusCode: 200,
                 body: JSON.stringify({ valid: false, message: 'Session expired. Please restart from WhatsApp.' }),
