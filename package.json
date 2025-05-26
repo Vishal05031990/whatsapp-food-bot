@@ -1,15 +1,17 @@
 {
-  "name": "whatsapp-food-ordering",
-  "version": "1.0.0",
-  "description": "WhatsApp food ordering system",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "mongodb": "^5.8.0",
-    "venom-bot": "^5.0.21"
-  }
+  "name": "whatsapp-food-ordering",
+  "version": "1.0.0",
+  "description": "WhatsApp food ordering system",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "mongodb": "^5.8.0",
+    "venom-bot": "^5.0.21",
+    "body-parser": "^1.20.2",
+    "uuid": "^9.0.1"
+  }
 }
