@@ -5,11 +5,10 @@ require('dotenv').config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'daalMail';
-const COLLECTION_NAME = 'orders'; // This is for orders
+const ORDERS_COLLECTION_NAME = 'orders'; // Renamed for clarity
+const SESSIONS_COLLECTION_NAME = 'sessions'; // Added for session management
 
-// Netlify automatically provides the base URL of your deployed site
-// This is crucial for function-to-function calls using full URLs
-const NETLIFY_SITE_URL = process.env.URL; // This variable is provided by Netlify
+const NETLIFY_SITE_URL = process.env.URL;
 
 // Reuse DB connection across requests
 let cachedDb = null;
@@ -30,7 +29,8 @@ exports.handler = async (event) => {
 
     try {
         const data = JSON.parse(event.body);
-        const { waNumber, orderItems, total } = data;
+        // Destructure sessionId and phoneNumber from the incoming data
+        const { waNumber, orderItems, total, sessionId, phoneNumber } = data;
 
         if (!waNumber || !orderItems || !total) {
             return {
@@ -48,11 +48,37 @@ exports.handler = async (event) => {
             status: 'new',
             orderTime: new Date(),
             orderNumber,
+            sessionId: sessionId, // Store sessionId with the order for traceability
         };
 
         const db = await connectToDatabase();
-        await db.collection(COLLECTION_NAME).insertOne(order);
+        const ordersCollection = db.collection(ORDERS_COLLECTION_NAME);
+        const sessionsCollection = db.collection(SESSIONS_COLLECTION_NAME); // Get sessions collection
 
+        // 1. Insert the order
+        await ordersCollection.insertOne(order);
+        console.log(`✅ Order ${order.orderNumber} inserted.`);
+
+
+        // 2. Mark the session as completed/finished
+        if (sessionId && phoneNumber) {
+            await sessionsCollection.updateOne(
+                { sessionId: sessionId, phoneNumber: phoneNumber },
+                {
+                    $set: {
+                        status: 'completed',
+                        completedAt: new Date(),
+                        orderNumber: order.orderNumber // Link the session to the order
+                    }
+                }
+            );
+            console.log(`✅ Session ${sessionId} for ${phoneNumber} marked as completed.`);
+        } else {
+            console.warn("⚠️ Session ID or Phone Number not provided to processOrder, cannot mark session as complete.");
+        }
+
+
+        // 3. Send WhatsApp message
         const orderSummary = `
 Order Summary:
 Order Number: ${order.orderNumber}
@@ -61,12 +87,9 @@ Items:
 ${orderItems.map(item => `- ${item.name} x ${item.quantity}`).join('\n')}
 Status: ${order.status}
 `;
-        // CONSTRUCT THE FULL ABSOLUTE URL FOR THE sendMessage FUNCTION
-        // Use NETLIFY_SITE_URL (e.g., https://sweet-sopapillas-fb37b3.netlify.app)
-        // and append the function path.
         const sendMessageUrl = `${NETLIFY_SITE_URL}/.netlify/functions/sendMessage`;
 
-        console.log(`Attempting to call sendMessage function at: ${sendMessageUrl}`); // Add for debugging
+        console.log(`Attempting to call sendMessage function at: ${sendMessageUrl}`);
 
         const sendMessageResponse = await axios.post(
             sendMessageUrl,
@@ -81,7 +104,6 @@ Status: ${order.status}
         } else {
             console.log("✅ WhatsApp message sent successfully!");
         }
-
 
         return {
             statusCode: 200,

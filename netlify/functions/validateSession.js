@@ -4,9 +4,8 @@ require('dotenv').config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'daalMail';
-const SESSIONS_COLLECTION_NAME = 'sessions'; // Assuming you have a 'sessions' collection
+const SESSIONS_COLLECTION_NAME = 'sessions';
 
-// Reuse DB connection across requests for performance in Netlify Functions
 let cachedDb = null;
 const connectToDatabase = async () => {
     if (cachedDb) return cachedDb;
@@ -37,29 +36,42 @@ exports.handler = async (event) => {
         const db = await connectToDatabase();
         const sessionsCollection = db.collection(SESSIONS_COLLECTION_NAME);
 
-        // Find the session
+        // Find the session. Now also check if its status is not 'completed'
         const session = await sessionsCollection.findOne({
             sessionId: sessionId,
             phoneNumber: phoneNumber
+            // status: { $ne: 'completed' } // Ensure session is not already completed
         });
 
         if (!session) {
             console.log(`❌ validateSession: Session not found for sessionId: ${sessionId}, phoneNumber: ${phoneNumber}`);
             return {
-                statusCode: 200, // Return 200 even if invalid, to allow frontend to display message
+                statusCode: 200,
                 body: JSON.stringify({ valid: false, message: 'Session not found. Please restart from WhatsApp.' }),
+            };
+        }
+
+        // Check if the session is already marked as 'completed'
+        if (session.status === 'completed') {
+            console.log(`❌ validateSession: Session already completed for sessionId: ${sessionId}`);
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ valid: false, message: 'This session has already been completed. Please start a new order from WhatsApp.' }),
             };
         }
 
         // Optional: Implement session expiration logic (e.g., sessions expire after 30 minutes)
         const THIRTY_MINUTES_MS = 30 * 60 * 1000;
         const now = new Date();
-        const sessionCreatedAt = new Date(session.createdAt); // Assuming 'createdAt' field in your session object
+        const sessionCreatedAt = new Date(session.createdAt);
 
         if (now.getTime() - sessionCreatedAt.getTime() > THIRTY_MINUTES_MS) {
             console.log(`❌ validateSession: Session expired for sessionId: ${sessionId}`);
-            // Optionally remove the expired session
-            await sessionsCollection.deleteOne({ _id: session._id });
+            // Optionally update the expired session to 'expired' status
+            await sessionsCollection.updateOne(
+                { _id: session._id },
+                { $set: { status: 'expired', expiredAt: now } }
+            );
             return {
                 statusCode: 200,
                 body: JSON.stringify({ valid: false, message: 'Session expired. Please restart from WhatsApp.' }),
